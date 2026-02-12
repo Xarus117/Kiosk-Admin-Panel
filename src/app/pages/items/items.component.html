@@ -1,0 +1,115 @@
+<div class="p-6">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h2 class="text-2xl font-bold text-gray-800">Items</h2>
+      <p class="text-gray-500 text-sm mt-1">Manage your kiosk menu items</p>
+    </div>
+    <p-button label="New Item" icon="pi pi-plus" (onClick)="openNew()" />
+  </div>
+
+  <!-- Table -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+    <p-table
+      [value]="items"
+      [loading]="loading"
+      [lazy]="true"
+      [paginator]="true"
+      [rows]="pageSize"
+      [totalRecords]="totalRecords"
+      (onLazyLoad)="onLazyLoad($event)"
+      styleClass="p-datatable-sm"
+    >
+      <ng-template #header>
+        <tr>
+          <th>Name</th>
+          <th>SKU</th>
+          <th>Category</th>
+          <th>Price</th>
+          <th>Available</th>
+          <th class="w-24">Actions</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-item>
+        <tr>
+          <td class="font-medium">{{ item.name }}</td>
+          <td class="font-mono text-sm text-gray-500">{{ item.sku }}</td>
+          <td>{{ getCategoryName(item.categoryId) }}</td>
+          <td>{{ item.price | currency }}</td>
+          <td>
+            <p-tag [value]="item.available ? 'Yes' : 'No'" [severity]="item.available ? 'success' : 'danger'" />
+          </td>
+          <td>
+            <div class="flex gap-1">
+              <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" size="small" pTooltip="Edit" (onClick)="openEdit(item)" />
+              <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" size="small" pTooltip="Delete" (onClick)="confirmDelete(item)" />
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="6" class="text-center text-gray-400 py-10">No items found</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+</div>
+
+<!-- Drawer -->
+<p-drawer [(visible)]="drawerVisible" [header]="isEdit ? 'Edit Item' : 'New Item'" position="right" styleClass="!w-[420px]">
+  <form [formGroup]="form" class="flex flex-col gap-4 p-2">
+
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-gray-700">Name <span class="text-red-500">*</span></label>
+      <input pInputText formControlName="name" placeholder="Item name" class="w-full" />
+      @if (form.get('name')?.invalid && form.get('name')?.touched) {
+        <small class="text-red-500">Name is required</small>
+      }
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-gray-700">SKU <span class="text-red-500">*</span></label>
+      <input pInputText formControlName="sku" placeholder="e.g. ITEM-001" class="w-full" />
+      @if (form.get('sku')?.invalid && form.get('sku')?.touched) {
+        <small class="text-red-500">SKU is required</small>
+      }
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-gray-700">Category <span class="text-red-500">*</span></label>
+      <p-select formControlName="categoryId" [options]="categories" optionLabel="label" optionValue="value" placeholder="Select category" class="w-full" />
+      @if (form.get('categoryId')?.invalid && form.get('categoryId')?.touched) {
+        <small class="text-red-500">Category is required</small>
+      }
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-gray-700">Price <span class="text-red-500">*</span></label>
+      <p-inputnumber formControlName="price" mode="currency" currency="USD" [minFractionDigits]="2" class="w-full" />
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-gray-700">Description</label>
+      <textarea pTextarea formControlName="description" rows="3" placeholder="Optional description" class="w-full"></textarea>
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-gray-700">Image URL</label>
+      <input pInputText formControlName="imageUrl" placeholder="https://..." class="w-full" />
+    </div>
+
+    <div class="flex items-center gap-3">
+      <p-toggleswitch formControlName="available" />
+      <label class="text-sm font-medium text-gray-700">Available</label>
+    </div>
+
+    <div class="flex gap-2 pt-2">
+      <p-button label="Save" icon="pi pi-check" (onClick)="save()" class="flex-1" />
+      <p-button label="Cancel" icon="pi pi-times" severity="secondary" [outlined]="true" (onClick)="drawerVisible = false" class="flex-1" />
+    </div>
+
+  </form>
+</p-drawer>

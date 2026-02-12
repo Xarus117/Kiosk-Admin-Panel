@@ -1,0 +1,131 @@
+<div class="p-6">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h2 class="text-2xl font-bold text-gray-800">Menus</h2>
+      <p class="text-gray-500 text-sm mt-1">View menu-able items and their configurations</p>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+    <p-table
+      [value]="menuItems"
+      [loading]="loading"
+      [lazy]="true"
+      [paginator]="true"
+      [rows]="pageSize"
+      [totalRecords]="totalRecords"
+      (onLazyLoad)="onLazyLoad($event)"
+      styleClass="p-datatable-sm"
+    >
+      <ng-template #header>
+        <tr>
+          <th>Item ID</th>
+          <th>Item Name</th>
+          <th>Category</th>
+          <th>Price</th>
+          <th>Available</th>
+          <th class="w-32">Actions</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-item>
+        <tr>
+          <td class="text-gray-500 text-sm">{{ item.itemId }}</td>
+          <td class="font-medium">{{ item.itemName }}</td>
+          <td class="text-gray-600">{{ item.categoryName || '—' }}</td>
+          <td>{{ item.price | currency }}</td>
+          <td>
+            <p-tag [value]="item.available ? 'Yes' : 'No'" [severity]="item.available ? 'success' : 'danger'" />
+          </td>
+          <td>
+            <div class="flex gap-1">
+              <p-button icon="pi pi-cog" [rounded]="true" [text]="true" size="small" pTooltip="View Config" (onClick)="viewConfig(item)" />
+              <p-button icon="pi pi-calculator" [rounded]="true" [text]="true" size="small" pTooltip="Price Calculator" (onClick)="openPriceCalc(item)" />
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="6" class="text-center text-gray-400 py-10">No menu items found</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+</div>
+
+<!-- Config Drawer -->
+<p-drawer [(visible)]="configDrawerVisible" header="Menu Configuration" position="right" styleClass="!w-[460px]">
+  @if (configLoading) {
+    <div class="flex items-center justify-center h-40">
+      <i class="pi pi-spin pi-spinner text-2xl text-gray-400"></i>
+    </div>
+  } @else if (selectedItemConfig) {
+    <div class="p-2 flex flex-col gap-4">
+      <div class="bg-blue-50 rounded-lg p-3">
+        <p class="font-bold text-blue-800">{{ selectedItemConfig.itemName }}</p>
+        <p class="text-xs text-blue-600">Item ID: {{ selectedItemConfig.itemId }}</p>
+      </div>
+      @for (section of configSections(selectedItemConfig); track section.label) {
+        <div>
+          <h4 class="text-sm font-semibold text-gray-700 mb-2">{{ section.label }}</h4>
+          <div class="flex flex-col gap-1">
+            @for (opt of section.items; track opt.id) {
+              <div class="flex justify-between items-center bg-gray-100 rounded px-3 py-2 text-sm">
+                <span>{{ opt.name }}</span>
+                <span class="text-gray-500">{{ opt.price | currency }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+      @if (configSections(selectedItemConfig).length === 0) {
+        <p class="text-gray-400 text-sm text-center py-8">No modifier options configured</p>
+      }
+    </div>
+  }
+</p-drawer>
+
+<!-- Price Calculator Drawer -->
+<p-drawer [(visible)]="priceDrawerVisible" header="Price Calculator" position="right" styleClass="!w-[400px]">
+  <div class="p-2 flex flex-col gap-4">
+
+    <div class="bg-gray-100 rounded-lg p-3">
+      <p class="text-xs text-gray-500 font-semibold">Item</p>
+      <p class="font-bold">{{ selectedItemName }}</p>
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-gray-700">Modifier IDs (comma-separated)</label>
+      <input pInputText [(ngModel)]="modifierIdsInput" placeholder="e.g. 1, 5, 12" class="w-full" />
+      <small class="text-gray-400">Leave empty for base price only</small>
+    </div>
+
+    <p-button label="Calculate" icon="pi pi-calculator" [loading]="priceLoading" (onClick)="calculatePrice()" />
+
+    @if (priceResult) {
+      <div class="bg-green-50 rounded-lg p-4 flex flex-col gap-2">
+        <p class="font-semibold text-green-800">Price Breakdown</p>
+        <div class="flex justify-between text-sm">
+          <span>Base price</span>
+          <span>{{ priceResult.basePrice | currency }}</span>
+        </div>
+        @for (mod of priceResult.modifiers; track mod.name) {
+          <div class="flex justify-between text-sm text-gray-600">
+            <span>+ {{ mod.name }}</span>
+            <span>{{ mod.price | currency }}</span>
+          </div>
+        }
+        <hr class="border-green-200 my-1">
+        <div class="flex justify-between font-bold text-green-800">
+          <span>Total</span>
+          <span>{{ priceResult.total | currency }}</span>
+        </div>
+      </div>
+    }
+
+  </div>
+</p-drawer>

@@ -1,0 +1,116 @@
+<div class="p-6">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h2 class="text-2xl font-bold text-gray-800">Payments</h2>
+      <p class="text-gray-500 text-sm mt-1">View transactions and manage refunds</p>
+    </div>
+    <p-button label="Process Payment" icon="pi pi-credit-card" (onClick)="openProcess()" />
+  </div>
+
+  <!-- Search -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-4">
+    <p class="text-sm font-medium text-gray-700 mb-3">Look up transactions by order</p>
+    <div class="flex gap-3">
+      <p-inputnumber [(ngModel)]="searchOrderId" placeholder="Order ID" [useGrouping]="false" class="flex-1" />
+      <p-button label="Search" icon="pi pi-search" [loading]="loading" (onClick)="search()" />
+    </div>
+  </div>
+
+  <!-- Transactions Table -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+    <p-table [value]="transactions" [loading]="loading" styleClass="p-datatable-sm">
+      <ng-template #header>
+        <tr>
+          <th>ID</th>
+          <th>Order ID</th>
+          <th>Amount</th>
+          <th>Method</th>
+          <th>Status</th>
+          <th>Date</th>
+          <th class="w-24">Actions</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-txn>
+        <tr>
+          <td class="text-gray-500 text-sm">{{ txn.id }}</td>
+          <td class="font-mono">#{{ txn.orderId }}</td>
+          <td class="font-medium">{{ txn.amount | currency }}</td>
+          <td>
+            <span class="px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">{{ txn.method }}</span>
+          </td>
+          <td>
+            <p-tag [value]="txn.status" [severity]="getStatusSeverity(txn.status)" />
+          </td>
+          <td class="text-gray-500 text-sm">{{ txn.createdAt | date:'short' }}</td>
+          <td>
+            @if (txn.status === 'COMPLETED') {
+              <p-button icon="pi pi-replay" [rounded]="true" [text]="true" severity="warn" size="small" pTooltip="Refund" (onClick)="openRefund(txn.orderId)" />
+            }
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="7" class="text-center text-gray-400 py-10">
+            @if (searchOrderId) {
+              No transactions found for order #{{ searchOrderId }}
+            } @else {
+              Enter an order ID to search for transactions
+            }
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+</div>
+
+<!-- Process Payment Drawer -->
+<p-drawer [(visible)]="processDrawerVisible" header="Process Payment" position="right" styleClass="!w-[400px]">
+  <div class="flex flex-col gap-4 p-2">
+
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-gray-700">Order ID <span class="text-red-500">*</span></label>
+      <p-inputnumber [(ngModel)]="processForm.orderId" placeholder="Order ID" [useGrouping]="false" class="w-full" />
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-gray-700">Amount <span class="text-red-500">*</span></label>
+      <p-inputnumber [(ngModel)]="processForm.amount" mode="currency" currency="USD" [minFractionDigits]="2" class="w-full" />
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-gray-700">Payment Method</label>
+      <p-select [(ngModel)]="processForm.method" [options]="methodOptions" optionLabel="label" optionValue="value" class="w-full" />
+    </div>
+
+    <div class="flex gap-2 pt-2">
+      <p-button label="Process" icon="pi pi-check" [loading]="processLoading" (onClick)="processPayment()" class="flex-1" />
+      <p-button label="Cancel" icon="pi pi-times" severity="secondary" [outlined]="true" (onClick)="processDrawerVisible = false" class="flex-1" />
+    </div>
+
+  </div>
+</p-drawer>
+
+<!-- Refund Drawer -->
+<p-drawer [(visible)]="refundDrawerVisible" header="Issue Refund" position="right" styleClass="!w-[380px]">
+  <div class="flex flex-col gap-4 p-2">
+
+    <div class="bg-orange-50 rounded-lg p-3">
+      <p class="text-sm text-orange-700">Issuing refund for <span class="font-bold">Order #{{ refundOrderId }}</span></p>
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-gray-700">Refund Amount (leave empty for full refund)</label>
+      <p-inputnumber [(ngModel)]="refundAmount" mode="currency" currency="USD" [minFractionDigits]="2" [showClear]="true" class="w-full" />
+    </div>
+
+    <div class="flex gap-2 pt-2">
+      <p-button label="Refund" icon="pi pi-check" severity="warn" [loading]="refundLoading" (onClick)="confirmRefund()" class="flex-1" />
+      <p-button label="Cancel" icon="pi pi-times" severity="secondary" [outlined]="true" (onClick)="refundDrawerVisible = false" class="flex-1" />
+    </div>
+
+  </div>
+</p-drawer>

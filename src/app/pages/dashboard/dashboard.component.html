@@ -1,0 +1,92 @@
+<div class="p-6">
+
+  <!-- Header -->
+  <div class="mb-6">
+    <h2 class="text-2xl font-bold text-gray-800">Dashboard</h2>
+    <p class="text-gray-500 text-sm mt-1">Overview of your kiosk operations</p>
+  </div>
+
+  <!-- Stat Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+
+    @if (loading) {
+      @for (i of [1,2,3,4]; track i) {
+        <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
+          <p-skeleton height="1.5rem" styleClass="mb-2" />
+          <p-skeleton height="2.5rem" width="60%" />
+        </div>
+      }
+    } @else {
+      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-200 flex items-center gap-4">
+        <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+          <i class="pi pi-box text-blue-600 text-xl"></i>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500">Total Items</p>
+          <p class="text-3xl font-bold text-gray-800">{{ stats.items }}</p>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-200 flex items-center gap-4">
+        <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+          <i class="pi pi-tags text-green-600 text-xl"></i>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500">Categories</p>
+          <p class="text-3xl font-bold text-gray-800">{{ stats.categories }}</p>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-200 flex items-center gap-4">
+        <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center shrink-0">
+          <i class="pi pi-sliders-h text-purple-600 text-xl"></i>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500">Modifiers</p>
+          <p class="text-3xl font-bold text-gray-800">{{ stats.modifiers }}</p>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-200 flex items-center gap-4">
+        <div class="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
+          <i class="pi pi-shopping-cart text-orange-600 text-xl"></i>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500">Total Orders</p>
+          <p class="text-3xl font-bold text-gray-800">{{ stats.orders }}</p>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Recent Orders -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+    <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+      <h3 class="font-semibold text-gray-800">Recent Orders</h3>
+      <a routerLink="/orders" class="text-sm text-blue-600 hover:underline">View all</a>
+    </div>
+    <p-table [value]="recentOrders" [loading]="loading" styleClass="p-datatable-sm">
+      <ng-template #header>
+        <tr>
+          <th>Order #</th>
+          <th>Status</th>
+          <th>Total</th>
+          <th>Created</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-order>
+        <tr>
+          <td class="font-mono text-sm">{{ order.orderNumber || '#' + order.id }}</td>
+          <td>
+            <p-tag [value]="order.status" [severity]="getStatusSeverity(order.status)" />
+          </td>
+          <td>{{ order.total | currency }}</td>
+          <td class="text-gray-500 text-sm">{{ order.createdAt | date:'short' }}</td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="4" class="text-center text-gray-400 py-8">No orders yet</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+</div>

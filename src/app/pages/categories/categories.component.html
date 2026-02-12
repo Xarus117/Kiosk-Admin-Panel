@@ -1,0 +1,91 @@
+<div class="p-6">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h2 class="text-2xl font-bold text-gray-800">Categories</h2>
+      <p class="text-gray-500 text-sm mt-1">Manage item categories and hierarchy</p>
+    </div>
+    <p-button label="New Category" icon="pi pi-plus" (onClick)="openNew()" />
+  </div>
+
+  <!-- Table -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+    <p-table [value]="categories" [loading]="loading" styleClass="p-datatable-sm">
+      <ng-template #header>
+        <tr>
+          <th>Name</th>
+          <th>Description</th>
+          <th>Parent</th>
+          <th>Order</th>
+          <th>Active</th>
+          <th class="w-24">Actions</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-cat>
+        <tr>
+          <td class="font-medium">{{ cat.name }}</td>
+          <td class="text-gray-500 text-sm">{{ cat.description || '—' }}</td>
+          <td>{{ getParentName(cat.parentId) }}</td>
+          <td>{{ cat.displayOrder ?? 0 }}</td>
+          <td>
+            <p-tag [value]="cat.active ? 'Active' : 'Inactive'" [severity]="cat.active ? 'success' : 'secondary'" />
+          </td>
+          <td>
+            <div class="flex gap-1">
+              <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" size="small" pTooltip="Edit" (onClick)="openEdit(cat)" />
+              <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" size="small" pTooltip="Delete" (onClick)="confirmDelete(cat)" />
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="6" class="text-center text-gray-400 py-10">No categories found</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+</div>
+
+<!-- Drawer -->
+<p-drawer [(visible)]="drawerVisible" [header]="isEdit ? 'Edit Category' : 'New Category'" position="right" styleClass="!w-[420px]">
+  <form [formGroup]="form" class="flex flex-col gap-4 p-2">
+
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-gray-700">Name <span class="text-red-500">*</span></label>
+      <input pInputText formControlName="name" placeholder="Category name" class="w-full" />
+      @if (form.get('name')?.invalid && form.get('name')?.touched) {
+        <small class="text-red-500">Name is required</small>
+      }
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-gray-700">Description</label>
+      <textarea pTextarea formControlName="description" rows="3" placeholder="Optional description" class="w-full"></textarea>
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-gray-700">Parent Category</label>
+      <p-select formControlName="parentId" [options]="parentOptions" optionLabel="label" optionValue="value"
+        placeholder="None (root category)" [showClear]="true" class="w-full" />
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-gray-700">Display Order</label>
+      <input pInputText type="number" formControlName="displayOrder" placeholder="0" class="w-full" />
+    </div>
+
+    <div class="flex items-center gap-3">
+      <p-toggleswitch formControlName="active" />
+      <label class="text-sm font-medium text-gray-700">Active</label>
+    </div>
+
+    <div class="flex gap-2 pt-2">
+      <p-button label="Save" icon="pi pi-check" (onClick)="save()" class="flex-1" />
+      <p-button label="Cancel" icon="pi pi-times" severity="secondary" [outlined]="true" (onClick)="drawerVisible = false" class="flex-1" />
+    </div>
+
+  </form>
+</p-drawer>
